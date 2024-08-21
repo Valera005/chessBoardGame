@@ -17,15 +17,8 @@ class Game
 	sf::Clock gameClock;
 
 	ChessBoard chessBoard{ window.getSize() };
-	Player playerWhite{ Piece::PieceColor::White };
-	Player playerBlack{ Piece::PieceColor::Black };
 
-	int turn = 0;
-	bool isWhiteMoves = true;
-	bool isCheck = false;
-	bool isCheckMate = false;
 
-	Configuration::GameStates gameStates = Configuration::GameStates::Menu;
 
 	void HandleInput();
 	
@@ -34,8 +27,6 @@ class Game
 
 	void Update();
 	void Render();
-
-	void SetBoard();
 
 public:
 

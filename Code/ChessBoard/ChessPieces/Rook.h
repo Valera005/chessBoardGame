@@ -6,11 +6,12 @@ class Rook : public Piece
 {
 
 public:
-	static int value;
 
 	Rook(const sf::IntRect& pieceRect, Piece::PieceColor color, const std::string& cellName);
 	virtual ~Rook() {}
 
 	virtual int GetValue() const;
+
+	virtual std::vector<ChessBoardCell*> getAllowedCellsToMove(ChessBoard& chessboard) ;
 };
 

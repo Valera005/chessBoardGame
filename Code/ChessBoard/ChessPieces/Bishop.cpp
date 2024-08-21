@@ -10,3 +10,8 @@ int Bishop::GetValue() const
 {
 	return 3;
 }
+
+std::vector<ChessBoardCell*> Bishop::getAllowedCellsToMove(ChessBoard& chessboard) 
+{
+	return std::vector<ChessBoardCell*>();
+}

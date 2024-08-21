@@ -4,6 +4,8 @@
 #include "SFML/Graphics/RenderTarget.hpp"
 #include "..\..\Configuration\Configuration.h"
 
+class ChessBoard;
+class ChessBoardCell;
 
 class Piece : public sf::Drawable
 {
@@ -27,7 +29,9 @@ public:
 
 	virtual int GetValue() const;
 
-private:
+	virtual std::vector<ChessBoardCell*> getAllowedCellsToMove(ChessBoard& chessboard) = 0;
+
+protected:
 
 	sf::Sprite pieceSprite;
 	PieceColor color;

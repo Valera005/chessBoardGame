@@ -10,3 +10,8 @@ int Knight::GetValue() const
 {
 	return 3;
 }
+
+std::vector<ChessBoardCell*> Knight::getAllowedCellsToMove(ChessBoard& chessboard) 
+{
+	return std::vector<ChessBoardCell*>();
+}

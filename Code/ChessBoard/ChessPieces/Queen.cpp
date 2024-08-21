@@ -9,3 +9,8 @@ int Queen::GetValue() const
 {
 	return 9;
 }
+
+std::vector<ChessBoardCell*> Queen::getAllowedCellsToMove(ChessBoard& chessboard) 
+{
+	return std::vector<ChessBoardCell*>();
+}

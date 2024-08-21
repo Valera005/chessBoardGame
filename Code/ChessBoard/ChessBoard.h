@@ -2,6 +2,7 @@
 #include "ChessPieces/AllPieces.h"
 #include "ChessBoardCell/ChessBoardCell.h"
 #include "SFML/Window/Event.hpp"
+#include "Player/Player.h"
 #include <array>
 
 class ChessBoard : public sf::Drawable
@@ -9,8 +10,20 @@ class ChessBoard : public sf::Drawable
 	std::vector<ChessBoardCell> cells;
 	const int static size = 64;
 
-	ChessBoardCell* pointedCell;
-	ChessBoardCell* selectedCell;
+	ChessBoardCell* pointedCell = nullptr;
+	ChessBoardCell* selectedCell = nullptr;
+
+	Player playerWhite{ Piece::PieceColor::White };
+	Player playerBlack{ Piece::PieceColor::Black };
+
+	int turn = 0;
+	bool isWhiteMoves = true;
+	bool isCheck = false;
+	bool isCheckMate = false;
+
+	Configuration::GameStates gameStates = Configuration::GameStates::Menu;
+
+	void SetBoard();
 
 public:
 
@@ -22,6 +35,8 @@ public:
 	static std::string IndexToCellName(int index);
 
 	ChessBoardCell& operator[](const std::string& cellName);
+	ChessBoardCell& operator[](const int& index);
+
 
 	void ProcessMouseMoved(sf::Event::MouseMoveEvent& mousePosition);
 
@@ -32,5 +47,7 @@ public:
 	int GetIndexByCoords(const sf::Vector2i coords);
 
 	sf::IntRect chessBoardRect;
+
+	bool isAllowedToMoveToCell(ChessBoardCell* cellFrom, ChessBoardCell* cellTo);
 };
 

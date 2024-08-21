@@ -10,3 +10,8 @@ int King::GetValue() const
 {
 	return 0;
 }
+
+std::vector<ChessBoardCell*> King::getAllowedCellsToMove(ChessBoard& chessboard) 
+{
+	return std::vector<ChessBoardCell*>();
+}

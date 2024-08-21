@@ -2,8 +2,68 @@
 #include <iostream>
 using std::cout, std::endl;
 
+void ChessBoard::SetBoard()
+{
+	// clear Players Info
+	playerWhite.pieces.clear();
+	playerWhite.caprutedPieces.clear();
+
+	playerBlack.pieces.clear();
+	playerBlack.caprutedPieces.clear();
+
+	// set up White pieces
+	playerWhite.pieces.push_back(Rook{ Configuration::whiteRookRect, Piece::PieceColor::White, "a1" });
+	playerWhite.pieces.push_back(Rook{ Configuration::whiteRookRect, Piece::PieceColor::White, "h1" });
+
+	playerWhite.pieces.push_back(Knight{ Configuration::whiteKnightRect, Piece::PieceColor::White, "b1" });
+	playerWhite.pieces.push_back(Knight{ Configuration::whiteKnightRect, Piece::PieceColor::White, "g1" });
+
+	playerWhite.pieces.push_back(Bishop{ Configuration::whiteBishopRect, Piece::PieceColor::White, "c1" });
+	playerWhite.pieces.push_back(Bishop{ Configuration::whiteBishopRect, Piece::PieceColor::White, "f1" });
+
+	playerWhite.pieces.push_back(Bishop{ Configuration::whiteQueenRect, Piece::PieceColor::White, "d1" });
+	playerWhite.pieces.push_back(Bishop{ Configuration::whiteKingRect, Piece::PieceColor::White, "e1" });
+
+	for (int i = 0; i < 8; i++)
+	{
+		playerWhite.pieces.push_back(Pawn{ Configuration::whitePawnRect, Piece::PieceColor::White, this->IndexToCellName(8 + i) });
+	}
+
+	// set up Black pieces
+	playerBlack.pieces.push_back(Rook{ Configuration::blackRookRect, Piece::PieceColor::Black, "a8" });
+	playerBlack.pieces.push_back(Rook{ Configuration::blackRookRect, Piece::PieceColor::Black, "h8" });
+
+	playerBlack.pieces.push_back(Knight{ Configuration::blackKnightRect, Piece::PieceColor::Black, "b8" });
+	playerBlack.pieces.push_back(Knight{ Configuration::blackKnightRect, Piece::PieceColor::Black, "g8" });
+
+	playerBlack.pieces.push_back(Bishop{ Configuration::blackBishopRect, Piece::PieceColor::Black, "c8" });
+	playerBlack.pieces.push_back(Bishop{ Configuration::blackBishopRect, Piece::PieceColor::Black, "f8" });
+
+	playerBlack.pieces.push_back(Bishop{ Configuration::blackQueenRect, Piece::PieceColor::Black, "d8" });
+	playerBlack.pieces.push_back(Bishop{ Configuration::blackKingRect, Piece::PieceColor::Black, "e8" });
+
+	for (int i = 0; i < 8; i++)
+	{
+		playerBlack.pieces.push_back(Pawn{ Configuration::blackPawnRect, Piece::PieceColor::Black, this->IndexToCellName(48 + i) });
+	}
+
+	for (int i = 0; i < playerWhite.pieces.size(); i++)
+	{
+		(*this)[playerWhite.pieces[i].cellName].SetPiece(&playerWhite.pieces[i]);
+	}
+
+	for (int i = 0; i < playerBlack.pieces.size(); i++)
+	{
+		(*this)[playerBlack.pieces[i].cellName].SetPiece(&playerBlack.pieces[i]);
+	}
+
+	
+}
+
 ChessBoard::ChessBoard(sf::Vector2u windowSize)
 {
+	Configuration::InitialiseTextures();
+
 	cells.reserve(size);
 
 	int width = windowSize.x;
@@ -26,6 +86,7 @@ ChessBoard::ChessBoard(sf::Vector2u windowSize)
 			cells.emplace_back(sf::Vector2f{ (float)leftBottom.x + ((i % 8) * cellDimensions.x), (float)leftBottom.y - ((i / 8) * cellDimensions.y) }, ChessBoardCell::CellColors::White);
 	}
 
+	SetBoard();
 }
 
 void ChessBoard::draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -41,6 +102,9 @@ void ChessBoard::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		if(piece!=nullptr)
 			target.draw(*piece);
 	}
+
+	if (selectedCell != nullptr && selectedCell->GetPiece() != nullptr)
+		target.draw(*(selectedCell->GetPiece()));
 }
 
 int ChessBoard::CellNameToIndex(const std::string& cellName)
@@ -70,6 +134,11 @@ std::string ChessBoard::IndexToCellName(int index)
 ChessBoardCell& ChessBoard::operator[](const std::string& cellName)
 {
 	return cells[CellNameToIndex(cellName)];
+}
+
+ChessBoardCell& ChessBoard::operator[](const int& index)
+{
+	return cells[index];
 }
 
 void ChessBoard::ProcessMouseMoved(sf::Event::MouseMoveEvent& mousePosition)
@@ -102,7 +171,7 @@ void ChessBoard::ProcessMouseMoved(sf::Event::MouseMoveEvent& mousePosition)
 
 void ChessBoard::ProcessMousePressed(sf::Vector2i mousePosition)
 {
-	if (pointedCell != nullptr && selectedCell == nullptr)
+	if (pointedCell != nullptr && selectedCell == nullptr && pointedCell->GetPiece() != nullptr)
 	{
 		selectedCell = pointedCell;
 	}
@@ -117,7 +186,7 @@ void ChessBoard::ProcessMouseReleased(sf::Vector2i mousePosition)
 {
 	if (selectedCell != nullptr)
 	{
-		if (pointedCell != nullptr && pointedCell != selectedCell)
+		if (pointedCell != nullptr && pointedCell != selectedCell && isAllowedToMoveToCell(selectedCell, pointedCell))
 		{
 			pointedCell->SetPiece(selectedCell->GetPiece());
 		}
@@ -146,6 +215,19 @@ int ChessBoard::GetIndexByCoords(const sf::Vector2i coords)
 	int index = row * 8 + column;
 
 	return index;
+}
+
+bool ChessBoard::isAllowedToMoveToCell(ChessBoardCell* cellFrom, ChessBoardCell* cellTo)
+{
+	Piece* temp = cellFrom->GetPiece();
+	std::vector<ChessBoardCell*> allowedCells = temp->getAllowedCellsToMove(*this);
+
+	for (int i = 0; i < allowedCells.size(); i++)
+	{
+		if (cellTo == allowedCells[i]) return true;
+	}
+
+	return false;
 }
 
 

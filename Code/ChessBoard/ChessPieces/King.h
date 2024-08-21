@@ -6,11 +6,12 @@ class King : public Piece
 {
 
 public:
-	static int value;
 
 	King(const sf::IntRect& pieceRect, Piece::PieceColor color, const std::string& cellName);
 	virtual ~King() {}
 
 	virtual int GetValue() const;
+
+	virtual std::vector<ChessBoardCell*> getAllowedCellsToMove(ChessBoard& chessboard) ;
 };
 

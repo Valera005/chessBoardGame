@@ -1,4 +1,5 @@
 #include "Piece.h"
+#include "..\ChessBoard.h"
 
 Piece::Piece(const sf::Texture& pieceTexture, const sf::IntRect& pieceRect,const PieceColor& color, const std::string& cellName)
 {
@@ -26,4 +27,15 @@ int Piece::GetValue() const
 {
 	return 0;
 }
+
+//std::vector<ChessBoardCell*> Piece::getAllowedCellsToMove(ChessBoard& chessboard) 
+//{
+//	Pawn* pawnPtr = dynamic_cast<Pawn*>(this);
+//	if (pawnPtr != nullptr)
+//		return pawnPtr->getAllowedCellsToMove(chessboard);
+//
+//	return std::vector<ChessBoardCell*>();
+//}
+
+
 
