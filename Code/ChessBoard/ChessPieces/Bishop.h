@@ -7,11 +7,10 @@ class Bishop : public Piece
 
 public:
 
-	Bishop(const sf::IntRect& pieceRect, Piece::PieceColor color, const std::string& cellName);
+	Bishop(const sf::IntRect& pieceRect, Piece::PieceColor color, const std::string& cellName, const GetAllowedCellsFuncType& GetAllowedCells);
 	virtual ~Bishop() {}
 
 	virtual int GetValue() const;
 
-	virtual std::vector<ChessBoardCell*> getAllowedCellsToMove(ChessBoard& chessboard) ;
 };
 

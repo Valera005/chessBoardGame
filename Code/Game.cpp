@@ -1,5 +1,5 @@
 #include "Game.h"
-
+#include "iostream"
 
 
 Game::Game()
@@ -75,7 +75,8 @@ void Game::HandleMouseMoved(sf::Event::MouseMoveEvent& mousePosition)
 void Game::Update()
 {
 	sf::Time deltaTime = gameClock.restart();
-
+	
+	chessBoard.Update(deltaTime);
 }
 
 void Game::Render()
@@ -85,10 +86,10 @@ void Game::Render()
 	window.draw(chessBoard);
 
 	window.display();
+
+	if (chessBoard.GetIsCheckMate()) std::cout << "checkMate\n";
+	if (chessBoard.GetIsPat()) std::cout << "PAT\n";
 }
-
-
-
 
 
 void Game::Run()

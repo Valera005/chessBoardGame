@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Code\Animations\CellReadAnimation.cpp" />
     <ClCompile Include="Code\ChessBoard\ChessBoard.cpp" />
     <ClCompile Include="Code\ChessBoard\ChessBoardCell\ChessBoardCell.cpp" />
     <ClCompile Include="Code\ChessBoard\ChessPieces\Bishop.cpp" />
@@ -157,8 +158,11 @@
     <ClCompile Include="Code\ChessBoard\ChessPieces\Queen.cpp" />
     <ClCompile Include="Code\ChessBoard\Player\Player.cpp" />
     <ClCompile Include="Code\Tools\Timer.cpp" />
+    <ClCompile Include="Code\ChessBoard\GreyCircles\GreyCircle.cpp" />
+    <ClCompile Include="Code\ChessBoard\PromotionTab\PromotionTab.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Code\Animations\CellReadAnimation.h" />
     <ClInclude Include="Code\ChessBoard\ChessBoard.h" />
     <ClInclude Include="Code\ChessBoard\ChessBoardCell\ChessBoardCell.h" />
     <ClInclude Include="Code\ChessBoard\ChessPieces\AllPieces.h" />
@@ -173,6 +177,8 @@
     <ClInclude Include="Code\ChessBoard\ChessPieces\Queen.h" />
     <ClInclude Include="Code\ChessBoard\Player\Player.h" />
     <ClInclude Include="Code\Tools\Timer.h" />
+    <ClInclude Include="Code\ChessBoard\GreyCircles\GreyCircle.h" />
+    <ClInclude Include="Code\ChessBoard\PromotionTab\PromotionTab.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />

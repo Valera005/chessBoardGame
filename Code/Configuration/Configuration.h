@@ -1,6 +1,7 @@
 #pragma once
 #include "SFML/Graphics/Texture.hpp"
 #include "SFML/Graphics/Sprite.hpp"
+#include "../ChessBoard/ChessPieces/Piece.h"
 
 class Configuration
 {

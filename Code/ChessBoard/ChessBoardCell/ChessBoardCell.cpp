@@ -4,7 +4,10 @@ sf::Color ChessBoardCell::CellColors::Green{ 115, 149, 82 };
 sf::Color ChessBoardCell::CellColors::White{ 235, 236, 208 };
 sf::Vector2f ChessBoardCell::cellDimensions{ 110,110 };
 
-ChessBoardCell::ChessBoardCell(sf::Vector2f position, sf::Color cellColor)
+ChessBoardCell::ChessBoardCell(sf::Vector2f position, sf::Color cellColor, int cellIndex, std::string cellName) 
+	: cellIndex(cellIndex), 
+	cellName(cellName),
+	greyCircle(position)
 {
 	auto localBounds = this->sprite.getLocalBounds();
 	this->sprite.setOrigin(localBounds.width / 2, localBounds.height / 2);
@@ -14,15 +17,27 @@ ChessBoardCell::ChessBoardCell(sf::Vector2f position, sf::Color cellColor)
 	this->sprite.setPosition(position);
 }
 
+
+
 Piece* ChessBoardCell::GetPiece() const
 {
 	return piecePtr;
 }
 
 void ChessBoardCell::SetPiece(Piece* piece)
-{
+{	
+	this->previousPiecePtr = this->piecePtr;
 	this->piecePtr = piece;
+	if (piece == nullptr) return;
+
+	this->piecePtr->cellName = this->cellName;
 	this->piecePtr->setSpritePosition(this->sprite.getPosition().x, this->sprite.getPosition().y);
+}
+
+void ChessBoardCell::Revert()
+{
+	this->piecePtr = previousPiecePtr;
+	this->SetPiece(previousPiecePtr);
 }
 
 bool ChessBoardCell::operator==(const ChessBoardCell& other)
@@ -63,3 +78,35 @@ void ChessBoardCell::UnPointTo()
 	else
 		this->sprite.setFillColor(CellColors::Green);
 }
+
+bool ChessBoardCell::isTherePiece()
+{
+	return this->GetPiece() != nullptr;
+}
+
+bool ChessBoardCell::isThereFriendPiece(Piece::PieceColor color)
+{
+	return isTherePiece() && this->GetPiece()->color == color;
+}
+
+bool ChessBoardCell::isThereEnemyPiece(Piece::PieceColor color)
+{
+	return isTherePiece() && this->GetPiece()->color != color;
+}
+
+bool ChessBoardCell::isThereEnemyPiece(Piece::PieceColor color, Piece::PieceType pieceType)
+{
+	return isTherePiece() && this->GetPiece()->color != color && this->piecePtr->type == pieceType;
+}
+
+void ChessBoardCell::ShowGreyCircle()
+{
+	isShowGreyCircle = true;
+}
+
+void ChessBoardCell::UnshowGreyCircle()
+{
+	isShowGreyCircle = false;
+}
+
+

@@ -39,6 +39,7 @@ sf::IntRect Configuration::blackRookRect
 sf::IntRect Configuration::blackPawnRect
 { Configuration::pieceWidth * 0, Configuration::pieceHeight * 0, Configuration::pieceWidth, Configuration::pieceHeight };
 
+
 void Configuration::InitialiseTextures()
 {
 	if (!Configuration::chessPiecesTexture.loadFromFile("Resources/Images/ChessPiecesSpriteSheet.png"))

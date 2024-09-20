@@ -3,6 +3,7 @@
 #include "SFML/Graphics/Sprite.hpp"
 #include "SFML/Graphics/RenderTarget.hpp"
 #include "..\..\Configuration\Configuration.h"
+#include <functional>
 
 class ChessBoard;
 class ChessBoardCell;
@@ -11,15 +12,28 @@ class Piece : public sf::Drawable
 {
 public:
 
-	std::string cellName;
-
 	enum class PieceColor
 	{
 		White,
 		Black
 	};
 
-	Piece(const sf::Texture& pieceTexture, const sf::IntRect& pieceRect, const PieceColor& color, const std::string& cellName);
+	enum class PieceType
+	{
+		Pawn,
+		Knight,
+		Bishop,
+		Rook,
+		Queen,
+		King
+	};
+
+	using GetAllowedCellsFuncType = std::function<std::vector<ChessBoardCell*>(ChessBoardCell* cell, ChessBoard& chessboard, Piece::PieceColor color)>;
+
+	GetAllowedCellsFuncType GetAllowedCellsFunc;
+
+	Piece(const sf::Texture& pieceTexture, const sf::IntRect& pieceRect, const PieceColor& color, const std::string& cellName,
+		const GetAllowedCellsFuncType& GetAllowedCells, PieceType pieceType);
 
 	virtual ~Piece() {}
 
@@ -29,12 +43,19 @@ public:
 
 	virtual int GetValue() const;
 
-	virtual std::vector<ChessBoardCell*> getAllowedCellsToMove(ChessBoard& chessboard) = 0;
+	void BindAllowedCells(GetAllowedCellsFuncType& GetAllowedCellsFunc);
+	
+	PieceColor color;
+	PieceType type;
+	std::string cellName;
+
+	bool isCaptured = false;
+
+	bool isAllowedPassageCapture = false;
+	ChessBoardCell* passageCaptureCell = nullptr;
 
 protected:
 
 	sf::Sprite pieceSprite;
-	PieceColor color;
-
 };
 

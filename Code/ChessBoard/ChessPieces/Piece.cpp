@@ -1,7 +1,7 @@
 #include "Piece.h"
-#include "..\ChessBoard.h"
 
-Piece::Piece(const sf::Texture& pieceTexture, const sf::IntRect& pieceRect,const PieceColor& color, const std::string& cellName)
+Piece::Piece(const sf::Texture& pieceTexture, const sf::IntRect& pieceRect,const PieceColor& color, const std::string& cellName,
+	const GetAllowedCellsFuncType& GetAllowedCells, PieceType pieceType)
 {
 	pieceSprite.setTexture(pieceTexture);
 	pieceSprite.setTextureRect(pieceRect);
@@ -10,7 +10,10 @@ Piece::Piece(const sf::Texture& pieceTexture, const sf::IntRect& pieceRect,const
 	pieceSprite.setScale(1, 1);
 
 	this->color = color;
+	this->type = pieceType;
 	this->cellName = cellName;
+
+	this->GetAllowedCellsFunc = GetAllowedCells;
 }
 
 void Piece::draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -28,14 +31,11 @@ int Piece::GetValue() const
 	return 0;
 }
 
-//std::vector<ChessBoardCell*> Piece::getAllowedCellsToMove(ChessBoard& chessboard) 
-//{
-//	Pawn* pawnPtr = dynamic_cast<Pawn*>(this);
-//	if (pawnPtr != nullptr)
-//		return pawnPtr->getAllowedCellsToMove(chessboard);
-//
-//	return std::vector<ChessBoardCell*>();
-//}
+
+void Piece::BindAllowedCells(GetAllowedCellsFuncType& GetAllowedCellsFunc)
+{
+	this->GetAllowedCellsFunc = GetAllowedCellsFunc;
+}
 
 
 

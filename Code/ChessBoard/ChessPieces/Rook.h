@@ -7,11 +7,11 @@ class Rook : public Piece
 
 public:
 
-	Rook(const sf::IntRect& pieceRect, Piece::PieceColor color, const std::string& cellName);
+	Rook(const sf::IntRect& pieceRect, Piece::PieceColor color, const std::string& cellName,
+		const GetAllowedCellsFuncType& GetAllowedCells);
 	virtual ~Rook() {}
 
 	virtual int GetValue() const;
 
-	virtual std::vector<ChessBoardCell*> getAllowedCellsToMove(ChessBoard& chessboard) ;
 };
 
