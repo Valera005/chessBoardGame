@@ -1,18 +1,10 @@
 #pragma once
 #include "SFML/Graphics/Texture.hpp"
 #include "SFML/Graphics/Sprite.hpp"
-#include "../ChessBoard/ChessPieces/Piece.h"
 
 class Configuration
 {
 public:
-	
-	enum class GameStates
-	{
-		Menu,
-		Running,
-		Finished
-	};
 
 	static const int pieceWidth = 128;
 	static const int pieceHeight = 128;

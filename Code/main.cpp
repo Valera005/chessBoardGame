@@ -1,10 +1,10 @@
-#include "Game.h"
+#include "ChessGame.h"
 
 
 
 int main()
 {
-    Game game;
+    ChessGame game;
 
     game.Run();
 
