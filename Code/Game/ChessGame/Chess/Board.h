@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <array>
+#include <unordered_map>
 #include "Cell/Cell.h"
 #include "Moves/AllMoves.h"
 #include "BoardUtils/BoardUtils.h"
@@ -20,8 +21,11 @@ public:
 		Running,
 		Checkmate,
 		Stalemate,
-		Draw,
+		DrawInsufficientMaterial,
+		DrawFiveTimesRepetition,
+		DrawFiftyMoves
 	};
+
 
 	enum class MoveExecutionStatus {
 		Executed,
@@ -71,9 +75,9 @@ public:
 
 	std::shared_ptr<Move> parseMove(int fromCell, int toCell) const;
 	
-	bool IsCheckMate() const;
-	bool IsStaleMate() const;
-	bool IsDraw() const;
+	bool IsStaleMate();
+	bool IsCheckMate();
+	bool IsDraw();
 
 	void UpdateCastleVariants(const Move& lastMove);
 	void UpdateEnPassant(const Move& lastMove);
@@ -81,7 +85,12 @@ public:
 	std::vector<std::shared_ptr<Piece>>& GetPieces();
 
 	Player* GetCurrentPlayer() const;
+	
+	std::string PositionToString() const;
+	void AddPosition(const std::string position);
 
+	GameState GetGameState() const;
+	const Player* GetWinnerPlayer() const;
 private:
 
 	std::vector<Cell> cells;
@@ -96,5 +105,7 @@ private:
 	Player* winnerPlayer = nullptr;
 
 	GameState gameState = GameState::Running;
+	std::unordered_map<std::string, int> positions;
+	bool isFiveTimesRepetition = false;
 };
 

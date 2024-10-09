@@ -25,4 +25,14 @@ void ChessGame::ResetGame()
 	boardDrawable.ResetBoard();
 }
 
+Board::GameState ChessGame::GetGameState() const
+{
+	return board.GetGameState();
+}
+
+const Player* ChessGame::GetWinnerPlayer() const
+{
+	return board.GetWinnerPlayer();
+}
+
 

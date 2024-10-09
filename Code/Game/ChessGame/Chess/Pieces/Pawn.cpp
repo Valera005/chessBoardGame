@@ -17,6 +17,7 @@ std::shared_ptr<Move> Pawn::CreatePawnMove(Piece::PieceColor currentColor, int f
 	return std::make_shared<Move>(fromCell, toCell, capturedPieceCell, Move::MoveType::Move);
 }
 
+
 Pawn::Pawn(PieceColor pieceColor, PieceType pieceType, int value, int cellIndex) : 
 	Piece(pieceColor, pieceType, value, cellIndex)
 {

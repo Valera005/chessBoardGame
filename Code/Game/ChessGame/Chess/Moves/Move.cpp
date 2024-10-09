@@ -35,6 +35,7 @@ bool Move::operator==(const Move& other) const
 
 void Move::execute(Board& board)
 {
+	movedPieceType = board[this->fromCell].GetPiece()->GetPieceType();
 	// classic Move execution
 	if (capturedPieceCell != -1 && board[capturedPieceCell].GetPiece() != nullptr)
 	{

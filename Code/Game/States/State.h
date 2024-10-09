@@ -6,6 +6,7 @@
 #include "SFML/System/Time.hpp"
 #include "SFML/Window/Event.hpp"
 #include "SFML/Graphics/Font.hpp"
+#include "SFML/Graphics/Color.hpp"
 #include "./Button/Button.h"
 #include "../Utils/Utils.h"
 

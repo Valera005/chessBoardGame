@@ -1,8 +1,8 @@
 #pragma once
+#include "../Pieces/Piece.h"
 
 class Board;
 class Cell;
-class Piece;
 class MoveValidator;
 
 class Move
@@ -33,5 +33,6 @@ protected:
 	int fromCell, toCell, capturedPieceCell;
 	MoveType type;
 	bool isCapturedPiece = false;
+	Piece::PieceType movedPieceType;
 };
 

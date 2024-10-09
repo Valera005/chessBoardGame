@@ -21,5 +21,7 @@ public:
 	void Draw(sf::RenderTarget& target);
 
 	void ResetGame();
+	Board::GameState GetGameState() const;
+	const Player* GetWinnerPlayer() const;
 };
 

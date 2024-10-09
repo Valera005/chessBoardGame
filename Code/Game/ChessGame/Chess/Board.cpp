@@ -1,8 +1,8 @@
 #include "Board.h"
 #include "MoveValidator/MoveValidator.h"
 
-Board::Board() : playerWhite(Piece::PieceColor::White), playerBlack(Piece::PieceColor::Black), 
-	currentPlayer(&playerWhite)
+Board::Board() : playerWhite(Piece::PieceColor::White), playerBlack(Piece::PieceColor::Black),
+currentPlayer(&playerWhite)
 {
 	cells.reserve(size);
 	for (int i = 0; i < size; i++)
@@ -54,28 +54,19 @@ Board::MoveExecutionStatus Board::Execute(int fromCell, int toCell)
 	Board::MoveExecutionStatus moveStatus = MoveValidator::isValidMove(*move, *this);
 
 	if (moveStatus != Board::MoveExecutionStatus::Executed) return moveStatus;
-	
+
 	move->execute(*this);
 
 	moves.emplace_back(move);
+	this->AddPosition(PositionToString());
 
 	UpdateCastleVariants(*move);
 
 	UpdateEnPassant(*move);
-	
-	if (IsCheckMate())
-	{
-		winnerPlayer = currentPlayer;
-		gameState = GameState::Checkmate;
-	}
-	else if (IsStaleMate())
-	{
-		gameState = GameState::Stalemate;
-	}
-	else if (IsDraw())
-	{
-		gameState = GameState::Draw;
-	}
+
+	IsStaleMate();
+	IsCheckMate();
+	IsDraw();
 
 	ChangeCurrentPlayer();
 
@@ -86,6 +77,8 @@ Board::MoveExecutionStatus Board::Execute(int fromCell, int toCell)
 void Board::ResetBoard()
 {
 	gameState = Board::GameState::Running;
+	isFiveTimesRepetition = false;
+	this->positions.clear();
 	this->moves.clear();
 	this->NullAllCells();
 	pieces.clear();
@@ -103,6 +96,7 @@ void Board::ResetBoard()
 	pieces.push_back(std::make_shared<Queen>(Piece::PieceColor::White, Piece::PieceType::Queen, 9, BoardUtils::CellNameToIndex("d1")));
 	pieces.push_back(std::make_shared<King>(Piece::PieceColor::White, Piece::PieceType::King, 100, BoardUtils::CellNameToIndex("e1")));
 
+	//row_width
 	for (int i = 0; i < row_width; i++)
 	{
 		pieces.push_back(std::make_shared<Pawn>(Piece::PieceColor::White, Piece::PieceType::Pawn, 1, i + 8));
@@ -196,7 +190,7 @@ void Board::CopyBoard(const Board& other)
 }
 
 void Board::NullAllCells()
-{	
+{
 	for (int i = 0; i < kings.size(); i++)
 	{
 		kings[i] = nullptr;
@@ -218,7 +212,7 @@ bool Board::IsCellAttackedByEnemyPiece(int cellIndex, Piece::PieceColor activePi
 	int column = cellIndex % 8;
 
 	Board tempBoard(*this);
-	
+
 	//make a temp piece, so pawns will also attack it
 	if (tempBoard[cellIndex].GetPiece() == nullptr)
 	{
@@ -226,13 +220,10 @@ bool Board::IsCellAttackedByEnemyPiece(int cellIndex, Piece::PieceColor activePi
 		tempBoard[cellIndex].SetPiece(tempBoard.pieces.back().get());
 	}
 
-	//bool isAttackedKing = cells[cellIndex].GetPiece() && cells[cellIndex].GetPiece()->type == Piece::PieceType::King;
-	
 	//go through every enemy piece and check if they attack cell
 	for (int i = 0; i < tempBoard.pieces.size(); i++)
 	{
 		if (tempBoard.pieces[i]->isCaptured || tempBoard.pieces[i]->color != enemyPieceColor) continue;
-		//if (tempBoard.pieces[i]->type == Piece::PieceType::King && isAttackedKing) continue;
 
 		auto validMoves = tempBoard.pieces[i]->GetValidMoves(tempBoard);
 
@@ -305,7 +296,7 @@ std::shared_ptr<Move> Board::parseMove(int fromCell, int toCell) const
 		if (toCellRow == lastRank) {
 			return std::make_shared<PromotionMove>(fromCell, toCell, toCell);
 		}
-		
+
 		int enPassantRank = (piece->color == Piece::PieceColor::White) ? 4 : 3;
 		if (fromCellRow == enPassantRank && std::abs(toCellCol - fromCellCol) == 1
 			&& cells[toCell].GetPiece() == nullptr) {
@@ -327,57 +318,175 @@ std::shared_ptr<Move> Board::parseMove(int fromCell, int toCell) const
 	return std::make_shared<Move>(fromCell, toCell, toCell, Move::MoveType::Move);
 }
 
-bool Board::IsCheckMate() const
+bool Board::IsCheckMate()
 {
 	Piece* enemyKing = this->GetKing(this->GetOppositePlayer(currentPlayer->GetColor()).GetColor());
 
-	if(this->IsCellAttackedByEnemyPiece(enemyKing->cellIndex, enemyKing->color)
-		&& MoveValidator::filterValidMoves(enemyKing->GetValidMoves(*this), *this).size() == 0) return true;
+	if (this->IsCellAttackedByEnemyPiece(enemyKing->cellIndex, enemyKing->color)
+		&& gameState == GameState::Stalemate)
+	{
+		winnerPlayer = currentPlayer;
+		gameState = GameState::Checkmate;
+		return true;
+	}
 
 	return false;
 }
 
-bool Board::IsStaleMate() const
+bool Board::IsStaleMate()
 {
 
 	for (int i = 0; i < pieces.size(); i++)
 	{
-		if (pieces[i]->color == currentPlayer->GetColor() 
+		if (pieces[i]->color == GetOppositePlayer(currentPlayer->GetColor()).GetColor()
 			&& MoveValidator::filterValidMoves(pieces[i]->GetValidMoves(*this), *this).size() != 0) return false;
 	}
 
+	gameState = GameState::Stalemate;
 	return true;
 }
 
-bool Board::IsDraw() const
+bool Board::IsDraw()
 {
-	return false;
+	if (isFiveTimesRepetition)
+	{
+		gameState = GameState::DrawFiveTimesRepetition;
+		return true;
+	}
+
+	// 50 moves from each side rule check
+	if (moves.size() > 100)
+	{
+		bool isDraw = true;
+		for (int size_m = moves.size(), i = size_m - 100; i < size_m; i++)
+		{
+			if (moves[i]->isCapturedPiece || moves[i]->movedPieceType == Piece::PieceType::Pawn)
+			{
+				isDraw = false;
+				break;
+			}
+		}
+
+		if (isDraw)
+		{
+			gameState = GameState::DrawFiftyMoves;
+			return true;
+		}
+	}
+
+
+	//sufficient material check
+
+	bool isEnoughMaterial = false;
+	int whiteBishopWhite = 0, whiteBishopBlack = 0, whiteKnight = 0, whiteRook = 0, whiteQueen = 0, whitePawn = 0;
+	int blackBishopWhite = 0, blackBishopBlack = 0, blackKnight = 0, blackRook = 0, blackQueen = 0, blackPawn = 0;
+
+	for (int i = 0; i < pieces.size(); i++)
+	{
+		if (pieces[i]->isCaptured) continue;
+
+		if (pieces[i]->color == Piece::PieceColor::White)
+		{
+			switch (pieces[i]->type)
+			{
+			case Piece::PieceType::Queen: whiteQueen++; isEnoughMaterial = true; break;
+			case Piece::PieceType::Rook: whiteRook++; isEnoughMaterial = true; break;
+			case Piece::PieceType::Pawn: whitePawn++; isEnoughMaterial = true; break;
+			case Piece::PieceType::Knight: whiteKnight++; break;
+			case Piece::PieceType::Bishop:
+				if (pieces[i]->cellIndex % 2 + (pieces[i]->cellIndex / row_width) % 2 == 0) whiteBishopBlack++;
+				else whiteBishopWhite++;
+				break;
+
+			default:
+				break;
+			}
+		}
+		else
+		{
+			switch (pieces[i]->type)
+			{
+			case Piece::PieceType::Queen: blackQueen++; isEnoughMaterial = true; break;
+			case Piece::PieceType::Rook: blackRook++; isEnoughMaterial = true; break;
+			case Piece::PieceType::Pawn: blackPawn++; isEnoughMaterial = true; break;
+			case Piece::PieceType::Knight: blackKnight++; break;
+			case Piece::PieceType::Bishop:
+				if (pieces[i]->cellIndex % 2 + (pieces[i]->cellIndex / row_width) % 2 == 0) blackBishopBlack++;
+				else blackBishopWhite++;
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		if (isEnoughMaterial) return false;
+	}
+
+	// now we can assume rook = 0, queen = 0, pawn = 0 both sides
+	
+	isEnoughMaterial = true;
+	//if king vs king
+	if (whiteBishopWhite == 0 && whiteBishopBlack == 0 && whiteKnight == 0 &&
+		blackBishopWhite == 0 && blackBishopBlack == 0 && blackKnight == 0) isEnoughMaterial = false;
+
+	//if king and bishop vs king
+	//White king and bishop vs king
+	if ((whiteBishopBlack + whiteBishopWhite == 1 && whiteKnight == 0
+		&& (blackBishopWhite == 0 && blackBishopBlack == 0 && blackKnight == 0)) ||
+		//Black king and bishop vs king
+		(blackBishopBlack + blackBishopWhite == 1 && blackKnight == 0
+			&& (whiteBishopWhite == 0 && whiteBishopBlack == 0 && whiteKnight == 0)))
+		isEnoughMaterial = false;
+
+	//if king and knight vs king
+	if ((whiteBishopBlack + whiteBishopWhite == 0 && whiteKnight == 1
+		&& (blackBishopWhite == 0 && blackBishopBlack == 0 && blackKnight == 0)) ||
+		(blackBishopBlack + blackBishopWhite == 0 && blackKnight == 1
+			&& (whiteBishopWhite == 0 && whiteBishopBlack == 0 && whiteKnight == 0)))
+		isEnoughMaterial = false;
+
+	//if king and bishop vs king and bishop of the same color
+	if ((whiteBishopBlack == 1 && whiteKnight == 0) && (blackBishopBlack == 1 && blackKnight == 0) ||
+		(whiteBishopWhite == 1 && whiteKnight == 0) && (blackBishopWhite == 1 && blackKnight == 0))
+		isEnoughMaterial = false;
+
+	if (!isEnoughMaterial) gameState = GameState::DrawInsufficientMaterial;
+
+	return gameState == GameState::Running;
 }
 
 void Board::UpdateCastleVariants(const Move& lastMove)
 {
-	Cell& lastMoveCell = cells[lastMove.toCell];
-	Piece* piece = lastMoveCell.GetPiece();
-	Player& player = this->GetPlayer(piece->color);
+	if (!(*this)["e1"].GetPiece() || (*this)["e1"].GetPiece()->GetPieceColor() != Piece::PieceColor::White
+		|| (*this)["e1"].GetPiece()->GetPieceType() != Piece::PieceType::King)
+	{
+		playerWhite.SetCanCastleLong(false);
+		playerWhite.SetCanCastleShort(false);
+	}
+	
+	if (!(*this)["a1"].GetPiece() || (*this)["a1"].GetPiece()->GetPieceColor() != Piece::PieceColor::White
+		|| (*this)["a1"].GetPiece()->GetPieceType() != Piece::PieceType::Rook) playerWhite.SetCanCastleLong(false);
 
-	if (piece->type == Piece::PieceType::King)
+	if (!(*this)["h1"].GetPiece() || (*this)["h1"].GetPiece()->GetPieceColor() != Piece::PieceColor::White
+		|| (*this)["h1"].GetPiece()->GetPieceType() != Piece::PieceType::Rook) playerWhite.SetCanCastleShort(false);
+
+
+	if (!(*this)["e8"].GetPiece() || (*this)["e8"].GetPiece()->GetPieceColor() != Piece::PieceColor::Black
+		|| (*this)["e8"].GetPiece()->GetPieceType() != Piece::PieceType::King)
 	{
-		player.SetCanCastleLong(false);
-		player.SetCanCastleShort(false);
+		playerBlack.SetCanCastleLong(false);
+		playerBlack.SetCanCastleShort(false);
 	}
-	else if(piece->type == Piece::PieceType::Rook)
-	{
-		if (piece->color == Piece::PieceColor::White)
-		{
-			if (lastMove.fromCell == 0) player.SetCanCastleLong(false);
-			else if (lastMove.fromCell == 7) player.SetCanCastleShort(false);
-		}
-		else
-		{
-			if (lastMove.fromCell == 56) player.SetCanCastleLong(false);
-			else if (lastMove.fromCell == 63) player.SetCanCastleShort(false);
-		}
-	}
+
+	if (!(*this)["a8"].GetPiece() || (*this)["a8"].GetPiece()->GetPieceColor() != Piece::PieceColor::Black
+		|| (*this)["a8"].GetPiece()->GetPieceType() != Piece::PieceType::Rook) playerBlack.SetCanCastleLong(false);
+
+	if (!(*this)["h8"].GetPiece() || (*this)["h8"].GetPiece()->GetPieceColor() != Piece::PieceColor::Black
+		|| (*this)["h8"].GetPiece()->GetPieceType() != Piece::PieceType::Rook) playerBlack.SetCanCastleShort(false);
+
+
+
 }
 
 void Board::UpdateEnPassant(const Move& lastMove)
@@ -395,7 +504,7 @@ void Board::UpdateEnPassant(const Move& lastMove)
 
 			if (pawn != nullptr) pawn->SetEnPassantCell(nullptr);
 			else throw std::exception("The piece with pieceType Pawn is not actually Pawn");
-		} 
+		}
 	}
 
 
@@ -450,7 +559,7 @@ void Board::UpdateEnPassant(const Move& lastMove)
 		}
 
 	}
-	
+
 
 }
 
@@ -462,6 +571,38 @@ std::vector<std::shared_ptr<Piece>>& Board::GetPieces()
 Player* Board::GetCurrentPlayer() const
 {
 	return this->currentPlayer;
+}
+
+std::string Board::PositionToString() const
+{
+	std::string res = "";
+	for (int i = 0; i < cells.size(); i++)
+	{
+		res += BoardUtils::CellToString(cells[i]);
+	}
+
+	if (currentPlayer->GetColor() == Piece::PieceColor::White) res += "W";
+	else res += "B";
+
+	return res;
+}
+
+void Board::AddPosition(const std::string position)
+{
+	if (positions.find(position) == positions.end()) positions[position] = 1;
+	else positions[position] += 1;
+
+	if (positions[position] == 5) isFiveTimesRepetition = true;
+}
+
+Board::GameState Board::GetGameState() const
+{
+	return gameState;
+}
+
+const Player* Board::GetWinnerPlayer() const
+{
+	return winnerPlayer;
 }
 
 

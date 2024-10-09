@@ -1,4 +1,6 @@
 #include "BoardUtils.h"
+#include "../Pieces/Piece.h"
+#include "../Cell/Cell.h"
 
 int BoardUtils::CellNameToIndex(const std::string& cellName)
 {
@@ -21,4 +23,56 @@ std::string BoardUtils::IndexToCellName(int index)
 	cellName[1] = (char)(index / 8 + '1');
 
 	return cellName;
+}
+
+std::string BoardUtils::PieceToString(const Piece& piece)
+{
+
+	std::string res = "";
+
+	if (piece.GetPieceColor() == Piece::PieceColor::White) res += "W";
+	else res += "B";
+
+	switch (piece.GetPieceType())
+	{
+
+	case Piece::PieceType::Pawn:
+		res += "P";
+		break;
+
+	case Piece::PieceType::Knight:
+		res += "N";
+		break;
+
+	case Piece::PieceType::Bishop:
+		res += "E";
+		break;
+
+	case Piece::PieceType::Rook:
+		res += "R";
+		break;
+
+	case Piece::PieceType::Queen:
+		res += "Q";
+		break;
+
+	case Piece::PieceType::King:
+		res += "K";
+		break;
+		
+	default:
+		break;
+	}
+
+	return res;
+}
+
+std::string BoardUtils::CellToString(const Cell& cell)
+{
+	std::string res = "";
+
+	if (cell.GetPiece() != nullptr && cell.GetPiece()->GetIsCaptured() == false) res += PieceToString(*cell.GetPiece());
+	else res += "O";
+
+	return res;
 }
